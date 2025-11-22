@@ -2,14 +2,15 @@ import express from "express";
 import dotenv from "dotenv";
 import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
-import { contentModel, tagModel, userModel } from "./db.js";
+import bcrypt, { hash } from "bcrypt";
+import { contentModel, LinkModel, tagModel, userModel } from "./db.js";
 import { userMiddleWare } from "./middleware.js";
 import {
   allowedContentTypes,
   ContentValidationSchema,
   UserValidationSchema,
 } from "./validation.js";
+import { random } from "./utils.js";
 dotenv.config();
 const app = express();
 
@@ -140,8 +141,48 @@ app.delete("/api/v1/content", async (req, res) => {
   res.json({ message: "Deleted" });
 });
 
-app.post("/api/v1/brain/share", (req, res) => {});
-app.post("/api/v1/brain/:shareLink", (req, res) => {});
+app.post("/api/v1/brain/share", userMiddleWare, async (req, res) => {
+  const { share } = req.body;
+  if (share) {
+    const existingLink = await LinkModel.findOne({
+      //@ts-ignore
+      userId: req.userId,
+    });
+    if (existingLink) {
+      return res.status(200).json({ message: `/share/${existingLink.hash}` });
+    }
+    const hash = random(10);
+    const shareCreated = await LinkModel.create({
+      //@ts-ignore
+      userId: req.userId,
+      hash: hash,
+    });
+    return res.status(200).json({ message: `/share/${hash}` });
+  } else {
+    const shareDeleted = await LinkModel.deleteOne({
+      //@ts-ignore
+      userId: req.userId,
+    });
+    return res.status(200).json({ message: "Link Deactivated" });
+  }
+});
+app.get("/api/v1/brain/:shareLink", async (req, res) => {
+  const hash = req.params.shareLink;
+
+  const findHash = await LinkModel.findOne({ hash: hash });
+
+  if (!findHash) {
+    return res.status(403).json({ message: "Sorry Incorrect Input" });
+  } else {
+    const content = await contentModel.find({ userId: findHash.userId });
+
+    const user = await userModel.findOne({ _id: findHash.userId });
+    if (!user) {
+      return res.status(403).json({ message: "User not Found" });
+    }
+    return res.status(200).json({ username: user.username, content: content });
+  }
+});
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error("🔥 Server Error:", err);

@@ -13,3 +13,6 @@
     "type":"document",
     "tags":["asd","rew","sdfg"]
 }
+{
+    "share":true
+}
