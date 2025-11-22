@@ -10,11 +10,13 @@ import {
   ContentValidationSchema,
   UserValidationSchema,
 } from "./validation.js";
+import cors from "cors";
 import { random } from "./utils.js";
 dotenv.config();
 const app = express();
 
 app.use(express.json());
+app.use(cors());
 app.post("/api/v1/signup", async (req, res) => {
   console.log(req.body);
   const userValid = UserValidationSchema.safeParse(req.body);
@@ -30,17 +32,17 @@ app.post("/api/v1/signup", async (req, res) => {
     if (userByName?._id) {
       return res
         .status(403)
-        .json({ err_msg: "User already exists with this username" });
+        .json({ message: "User already exists with this username" });
     }
     const posteduser = await userModel.create({
       username: username,
       password: hashedPassword,
     });
     if (posteduser?._id) {
-      return res.status(200).json({ msg: "Signed up" });
+      return res.status(200).json({ message: "Signed up" });
     }
   } else {
-    return res.status(411).json({ res_msg: " Error in inputs" });
+    return res.status(411).json({ message: " Error in inputs" });
   }
   return res.status(500).json({
     success: false,
@@ -78,11 +80,11 @@ app.post("/api/v1/signin", async (req, res) => {
           token: generatedToken,
         });
       } else {
-        return res.status(403).json({ err_msg: "Wrong password" });
+        return res.status(403).json({ message: "Wrong password" });
       }
     }
   } else {
-    return res.status(403).json({ err_msg: "Wrong email password" });
+    return res.status(403).json({ message: "Wrong email password" });
   }
   throw new Error();
 });
@@ -92,19 +94,22 @@ app.post("/api/v1/content", userMiddleWare, async (req, res) => {
     const link = req.body.link;
     const title = req.body.title;
     const tags = req.body.tags;
+    const type = req.body.type;
     // if (!allowedContentTypes.includes(req.body.type)) {
     //   return res.status(403).json({ message: "The Type is not Valid" });
     // }
 
     // console.log("tagIds : " + tagsIds);
     let tagsIdsArray = [];
-    for (let i = 0; i < tags.length; i++) {
-      const tagsId = await tagModel.create({ name: tags[i] });
-      console.log(tags[i]);
-      //@ts-ignore
-      tagsIdsArray.push(tagsId._id);
+    if (tags?.length) {
+      for (let i = 0; i < tags?.length; i++) {
+        const tagsId = await tagModel.create({ name: tags[i] });
+        console.log(tags[i]);
+        //@ts-ignore
+        tagsIdsArray.push(tagsId._id);
+      }
     }
-    const type = req.body.type;
+
     const contentCreated = await contentModel.create({
       link: link,
       title: title,

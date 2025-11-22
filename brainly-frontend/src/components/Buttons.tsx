@@ -2,8 +2,10 @@ export interface Buttonprops {
   variant: "primary" | "secondary";
   size: "sm" | "md" | "lg";
   text: string;
+  fullWidth?: boolean;
   startIcon?: React.ReactNode;
   endIcon?: React.ReactNode;
+  loading?: boolean;
   onClick: () => void;
 }
 const variantStyles = {
@@ -22,11 +24,14 @@ export const Button = (props: Buttonprops) => {
     <button
       onClick={props.onClick}
       className={`
-        inline-flex items-center gap-2 rounded-md font-medium
+        inline-flex items-center gap-2 rounded-md font-medium 
         ${variantStyles[props.variant]}
+      ${props.loading ? "opacity-20" : "cursor-pointer"}
         ${sizeStyles[props.size]}
+        ${props.fullWidth ? " w-full justify-center items-center" : ""}
         transition-colors duration-200
       `}
+      disabled={props.loading}
     >
       {props.startIcon && <span>{props.startIcon}</span>}
       {props.text}

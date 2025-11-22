@@ -1,26 +1,18 @@
 import "./App.css";
-import { VscAdd } from "react-icons/vsc";
-import { Button } from "./components/Buttons";
-import { FaShareAlt } from "react-icons/fa";
+import DashBoard from "./pages/dashboard";
+import { SignIn } from "./pages/SignIn";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { SignUp } from "./pages/SignUp";
 
 function App() {
   return (
-    <>
-      <Button
-        variant="primary"
-        size="lg"
-        text="Add Content"
-        onClick={() => {}}
-        startIcon={<VscAdd />}
-      />
-      <Button
-        variant="secondary"
-        size="lg"
-        text="Share Brain"
-        onClick={() => {}}
-        startIcon={<FaShareAlt />}
-      />
-    </>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/dashboard" element={<DashBoard />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
