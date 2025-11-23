@@ -14,7 +14,7 @@ export const useContent = () => {
         console.log(response);
         setContents(response.data.content);
       });
-    // console.log(response);
+    console.log(response);
   }, []);
 
   return contents;
